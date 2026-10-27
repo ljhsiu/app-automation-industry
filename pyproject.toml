@@ -1,0 +1,71 @@
+[project]
+name = "app-automation-mcp"
+version = "1.0.0"
+description = "Industrial Automation App Testing MCP Server - 工业自动化 App 测试 MCP 服务器"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [
+    { name = "Industrial Automation Team" }
+]
+requires-python = ">=3.10"
+keywords = ["mcp", "automation", "testing", "android", "uiautomator2"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "uiautomator2>=2.12.0",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0.0",
+]
+
+[project.scripts]
+app-automation-mcp = "src.mcp_server.server:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mcp_server"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/config",
+    "/README.md",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+asyncio_mode = "auto"
+
+[tool.black]
+line-length = 100
+target-version = ['py310']
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false

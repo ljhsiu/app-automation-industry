@@ -1,0 +1,319 @@
+# ============================================================
+# 搬运任务 - 操作流程定义 (v2.0 - 录制修正版)
+# 用途: 基于 2026-05-31 实际设备录制数据，记录精准的定位策略
+# ============================================================
+
+meta:
+  name: "搬运任务压测流程"
+  version: "2.0"
+  package: "com.keenon.solutionindustry"
+  home_activity: "com.keenon.industry.activity.IndustryHomeActivity"
+  transport_activity: "com.keenon.industry.activity.ModelHomeActivity"
+  work_activity: "com.keenon.industry.activity.WorkHomeActivity"
+
+# 点位配置
+points:
+  start: "装卸点7"
+  end: "装卸点8"
+
+# 超时配置 (毫秒)
+timeouts:
+  element_wait: 30000        # 等待UI元素出现
+  task_complete: 180000      # 等待任务完成
+  poll_interval: 30000       # 轮询间隔
+
+# ============================================================
+# 操作步骤
+# ============================================================
+steps:
+
+  # ─────────────────────────────────────
+  # 阶段 1: 启动与确认首页
+  # ─────────────────────────────────────
+  - id: "01_start_app"
+    name: "启动App"
+    action: app_start
+    description: "启动工业App (若已在后台则切到前台)"
+    expected: "进入首页 IndustryHomeActivity"
+    activity: "com.keenon.industry.activity.IndustryHomeActivity"
+
+  - id: "02_verify_home"
+    name: "确认首页"
+    action: verify
+    description: "确认首页已加载，检查'搬运'卡片可见"
+    locators:
+      - type: text
+        value: "搬运"
+      - type: resourceId
+        value: "com.keenon.solutionindustry:id/tv_model_bom"
+    expected: "首页「搬运」卡片可见"
+    # 首页实际元素:
+    # 第一行: "直达" | "循环"
+    # 第二行: "多点" | "料箱"+"搬运" 组合卡片
+    # 注意: 按钮文案是"搬运"不是"搬运组件"！
+
+  # ─────────────────────────────────────
+  # 阶段 2: 进入搬运任务页
+  # ─────────────────────────────────────
+  - id: "03_click_transport"
+    name: "点击搬运"
+    action: click
+    description: "点击首页右侧下方的「搬运」卡片"
+    locators:
+      - type: text
+        value: "搬运"
+      - type: resourceId
+        value: "com.keenon.solutionindustry:id/view_bom"
+    expected: "跳转到 ModelHomeActivity (搬运任务页)"
+    verify_after:
+      - type: text
+        value: "起点"
+        description: "搬运页第一行左侧标签"
+      - type: text
+        value: "开始工作"
+        description: "页面底部按钮"
+
+  # ─────────────────────────────────────
+  # 阶段 3: 选择起点
+  # ─────────────────────────────────────
+  - id: "04_click_start_point"
+    name: "点击起点"
+    action: click
+    description: "点击搬运页第一行的「起点」区域 (item_start_point)"
+    locators:
+      - type: resourceId
+        value: "com.keenon.solutionindustry:id/item_start_point"
+      - type: text
+        value: "起点"
+    expected: "弹出「选择目标点」浮窗"
+    verify_after:
+      - type: text
+        value: "选择目标点"
+        description: "浮窗标题，实际是「选择目标点」不是「点位选择」！"
+
+  - id: "05_select_start_point"
+    name: "选择起点点位"
+    action: click
+    description: "在浮窗列表中点击目标点位名称"
+    locators:
+      - type: text
+        value: "${start_point}"
+      - type: resourceId
+        value: "com.keenon.solutionindustry:id/tv_point"
+    expected: "点位高亮选中"
+    # 浮窗结构:
+    # 标题: "选择目标点" (tv_title)
+    # 取消: "取消" (tv_cancel)
+    # 确定: "确定" (tv_sure)
+    # 楼层: "楼层1" (tv_text, recycler_floor)
+    # 点位: "装卸点1"~"装卸点8" (tv_point, recycler_list)
+
+  - id: "06_confirm_start_point"
+    name: "确定起点"
+    action: click
+    description: "点击浮窗右上角「确定」按钮"
+    locators:
+      - type: text
+        value: "确定"
+      - type: resourceId
+        value: "com.keenon.solutionindustry:id/tv_sure"
+    expected: "浮窗关闭，起点区域右侧显示「${start_point}」"
+    verify_after:
+      - type: text
+        value: "${start_point}"
+        description: "tv_end 文案应从「选择目标点」变为点位名"
+
+  # ─────────────────────────────────────
+  # 阶段 4: 选择终点
+  # ─────────────────────────────────────
+  - id: "07_click_end_point"
+    name: "点击终点"
+    action: click
+    description: "点击搬运页第二行的「终点」区域 (item_end_point)"
+    locators:
+      - type: resourceId
+        value: "com.keenon.solutionindustry:id/item_end_point"
+      - type: text
+        value: "终点"
+    expected: "弹出「选择目标点」浮窗"
+    verify_after:
+      - type: text
+        value: "选择目标点"
+
+  - id: "08_select_end_point"
+    name: "选择终点点位"
+    action: click
+    description: "在浮窗列表中点击目标点位名称"
+    locators:
+      - type: text
+        value: "${end_point}"
+      - type: resourceId
+        value: "com.keenon.solutionindustry:id/tv_point"
+    expected: "点位高亮选中"
+
+  - id: "09_confirm_end_point"
+    name: "确定终点"
+    action: click
+    description: "点击浮窗右上角「确定」按钮"
+    locators:
+      - type: text
+        value: "确定"
+      - type: resourceId
+        value: "com.keenon.solutionindustry:id/tv_sure"
+    expected: "浮窗关闭，终点区域右侧显示「${end_point}」"
+    verify_after:
+      - type: text
+        value: "${end_point}"
+
+  # ─────────────────────────────────────
+  # 阶段 5: 选择货架规格
+  # ─────────────────────────────────────
+  - id: "10_click_shelf_spec"
+    name: "点击货架规格"
+    action: click
+    description: "点击搬运页第三行的「货架规格」区域 (item_shelf_size)"
+    locators:
+      - type: resourceId
+        value: "com.keenon.solutionindustry:id/item_shelf_size"
+      - type: text
+        value: "货架规格"
+    expected: "弹出「选择货架」浮窗"
+    verify_after:
+      - type: text
+        value: "选择货架"
+        description: "浮窗标题"
+
+  - id: "11_select_shelf"
+    name: "选择货架尺寸"
+    action: click
+    description: "在浮窗中点击第二个货架选项「1200」(1200 x 500)，不要选国标"
+    locators:
+      - type: resourceId
+        value: "com.keenon.solutionindustry:id/swipe_layout"
+        instance: 1
+        description: "第二个 swipe_layout，tv_title=1200, tv_description=1200 x 500"
+      - type: xpath
+        value: "//*[@resource-id='com.keenon.solutionindustry:id/tv_description' and @text='1200 x 500']/../.."
+        description: "通过 tv_description 定位到 view_root"
+    expected: "iv_checked.selected=true，蓝色勾选图标出现在1200 x 500项"
+    verify:
+      - type: selected
+        resourceId: "com.keenon.solutionindustry:id/iv_checked"
+        expected: true
+        description: "在对应的 swipe_layout 内检查 iv_checked 是否 selected"
+
+  - id: "12_confirm_shelf"
+    name: "确定货架"
+    action: click
+    description: "点击浮窗右上角「确定」按钮"
+    locators:
+      - type: text
+        value: "确定"
+      - type: resourceId
+        value: "com.keenon.solutionindustry:id/tv_sure"
+    expected: "浮窗关闭，货架区域右侧显示「1200」"
+    verify_after:
+      - type: text
+        value: "1200"
+        description: "tv_end 文案从「选择货架」变为「1200」"
+
+  # ─────────────────────────────────────
+  # 阶段 6: 开始工作
+  # ─────────────────────────────────────
+  - id: "13_start_work"
+    name: "开始工作"
+    action: click
+    description: "点击底部「开始工作」按钮下发搬运任务"
+    locators:
+      - type: text
+        value: "开始工作"
+      - type: resourceId
+        value: "com.keenon.solutionindustry:id/view_start"
+    expected: "进入运行中页面，标题变为「运行中」"
+    verify_after:
+      - type: text
+        value: "运行中"
+        description: "标题从「搬运」变为「运行中」"
+      - type: text
+        value: "正在前往"
+        description: "状态文字以「正在前往{点位}」开头"
+
+  # ─────────────────────────────────────
+  # 阶段 7: 轮询等待任务结果
+  # ─────────────────────────────────────
+  - id: "14_poll_task"
+    name: "轮询等待任务结果"
+    action: poll
+    description: >
+      每30秒轮询 tv_msg 元素的文案，直到到达终态或超时。
+      完整流程: 前往起点→到达装货→前往终点→到达卸货→完成
+    poll:
+      interval_ms: 30000
+      timeout_ms: 180000
+      target_element:
+        resourceId: "com.keenon.solutionindustry:id/tv_msg"
+      # 运行中页面 Activity: WorkHomeActivity
+      # 标题始终为 "运行中" (tv_text)
+      states:
+        - text: "正在前往"
+          meaning: "机器人导航中，下方显示距离和ETA"
+          pattern: "^正在前往.*"
+        - text: "已到达.*装货"
+          meaning: "已到达目标点，正在装/卸货中"
+          pattern: "^已到达.*装货中.*|^已到达.*卸货中.*"
+        - text: "已完成卸货"
+          meaning: "任务成功完成"
+          is_terminal: true
+          is_success: true
+          note: "底部出现「确定」按钮(view_commit)，tv_tip=「已完成卸货，请点击确认~」"
+        - text: "匹配失败"
+          meaning: "到达目标点但无法匹配/对接"
+          is_terminal: true
+          is_failure: true
+          note: "底部出现「确定」按钮(view_commit)，tv_tip=「匹配失败，点击底部按钮退出运行」"
+      # tv_tip 文案变化:
+      # 导航中: "点击屏幕任意位置，可以暂停哦~"
+      # 行驶中: "请不要站在机器周围"
+      # 成功:   "已完成卸货，请点击确认~"
+      # 失败:   "匹配失败，点击底部按钮退出运行"
+    expected: "3分钟内出现「已完成卸货」"
+    on_failure: "截图保存 → 点击确定退出 → 标记本轮失败"
+
+  # ─────────────────────────────────────
+  # 阶段 8: 截图 & 确认完成
+  # ─────────────────────────────────────
+  - id: "15_screenshot_result"
+    name: "截图保存"
+    action: screenshot
+    description: "截取当前页面作为测试记录"
+    expected: "截图保存到指定目录"
+
+  - id: "16_click_confirm"
+    name: "点击确定退出"
+    action: click
+    description: >
+      无论成功(已完成卸货)还是失败(匹配失败)，底部都是同一个「确定」按钮。
+    locators:
+      - type: text
+        value: "确定"
+      - type: resourceId
+        value: "com.keenon.solutionindustry:id/view_commit"
+        description: "view_commit → tv_start(text=确定)"
+    expected: "退出运行页，自动回到首页 IndustryHomeActivity"
+
+  - id: "17_verify_home"
+    name: "验证回到首页"
+    action: verify
+    description: "确认已回到 IndustryHomeActivity"
+    locators:
+      - type: text
+        value: "搬运"
+        description: "首页特征元素"
+      - type: resourceId
+        value: "com.keenon.solutionindustry:id/tv_model_bom"
+      - type: activity
+        value: "com.keenon.industry.activity.IndustryHomeActivity"
+    expected: "已回到首页，可进行下一轮"
+    retry:
+      action: press_back
+      max_attempts: 6

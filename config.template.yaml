@@ -1,0 +1,235 @@
+# ============================================================
+# 工业自动化 App 压测项目 - 统一配置文件
+# 技术栈: Python + uiautomator2 + ADB
+# 基于 2026-05-31 实际设备录制数据
+# ============================================================
+
+# ============================================================
+# 一、设备连接 (所有脚本共用)  ← 必须修改！
+# ============================================================
+device:
+  ip: "192.168.0.141"       # ← 改为你的机器人 WiFi IP
+  port: 5555
+  serial: "192.168.0.141:5555"  # ← 格式: <IP>:<port>
+  package: "com.keenon.solutionindustry"
+  home_activity: "com.keenon.industry.activity.IndustryHomeActivity"
+  transport_activity: "com.keenon.industry.activity.ModelHomeActivity"
+  work_activity: "com.keenon.industry.activity.WorkHomeActivity"
+
+# 设备列表 (供 adb_wifi_connect 等工具管理多设备)
+devices:
+  default:
+    name: "默认设备"
+    ip: "192.168.0.100"     # ← 改为你的机器人 WiFi IP
+    port: 5555
+    serial: null
+    package: "com.keenon.solutionindustry"
+  # device2:
+  #   name: "设备2"
+  #   ip: "192.168.1.100"
+  #   port: 5555
+  #   serial: null
+  #   package: "com.keenon.solutionindustry"
+
+current_device: default
+
+# ============================================================
+# 一·二、双机分布式配置 (transport_stress_test_machine1.py / machine2.py)
+#   两个独立脚本分别读取 machine1 / machine2 的 IP，连接各自目标机器。
+# ============================================================
+transport_machines:
+  machine1:
+    name: "机器1"
+    ip: "192.168.0.100"            # ← 改为机器1的机器人 WiFi IP
+    port: 5555
+    serial: "192.168.0.100:5555"
+    package: "com.keenon.solutionindustry"
+    home_activity: "com.keenon.industry.activity.IndustryHomeActivity"
+  machine2:
+    name: "机器2"
+    ip: "192.168.0.101"            # ← 改为机器2的机器人 WiFi IP
+    port: 5555
+    serial: "192.168.0.101:5555"
+    package: "com.keenon.solutionindustry"
+    home_activity: "com.keenon.industry.activity.IndustryHomeActivity"
+
+# ============================================================
+# 二、充电配置
+# ============================================================
+charge:
+  low_battery_threshold: 10
+  target_battery_threshold: 80
+  max_wait_seconds: 7200
+  check_interval: 60
+
+# ============================================================
+# 三、搬运压测 (transport_stress_test.py)
+# ============================================================
+transport_stress:
+  stress:
+    cycles: 10
+    interval_between_cycles: 3
+    operation_timeout: 30
+
+  # 双机同步配置 (transport_stress_dual.py)
+  dual_sync:
+    enabled: true
+    barrier_timeout: 600              # 同步屏障超时(秒)
+
+  transport:
+    primary:
+      floor: 1                      # 楼层号
+      start_point: "装卸点1_1"       # ← 改为实际点位名称
+      end_point: "装卸点1_2"         # ← 改为实际点位名称
+    shelf_spec:
+      name: "货架（每个）"
+      description: "1200 x 500"
+      instance: 4                   # 货架列表中的索引 (0=国标,1=欧洲,2=日韩,3=美国,4=默认)
+    task:
+      poll_interval: 10
+      max_wait_seconds: 300
+      success_text: "已完成卸货"
+      fail_text: "匹配失败"
+
+  # 按机器区分的楼层点位(floor/start_point/end_point)与货架(instance)
+  # 优先级: machines.<machine_id> > transport.primary / transport.shelf_spec
+  machines:
+    machine1:
+      primary:
+        floor: 1                          # ← 机器1 楼层，按实际修改
+        start_point: "装卸点1_1"           # ← 机器1 起点
+        end_point: "装卸点1_2"             # ← 机器1 终点
+      shelf_spec:
+        name: "货架（每个）"
+        description: "1200 x 500"
+        instance: 4                       # ← 机器1 货架项
+    machine2:
+      primary:
+        floor: 1                          # ← 机器2 楼层，按实际修改
+        start_point: "装卸点2_1"           # ← 机器2 起点
+        end_point: "装卸点2_2"             # ← 机器2 终点
+      shelf_spec:
+        name: "货架（每个）"
+        description: "1200 x 500"
+        instance: 4                       # ← 机器2 货架项
+
+  fail:
+    max_consecutive_failures: 3
+    keep_points_on_fail: true
+
+  battery_protect:
+    enabled: true
+    low_threshold: 20
+    charge_target: 80
+    check_before_cycle: true
+
+  screenshot:
+    navigation_enabled: true
+    navigation_interval: 10
+    navigation_dir: "./screenshots/navigation"
+    result_dir: "./reports/screenshots"
+
+  report:
+    format: "md"
+    output_dir: "./reports"
+    filename_template: "transport_stress_report_{timestamp}.md"
+
+  ui_elements:
+    home:
+      transport_btn:
+        text: "搬运"
+        resourceId: "com.keenon.solutionindustry:id/view_bom"
+    transport_page:
+      start_point_row:
+        resourceId: "com.keenon.solutionindustry:id/item_start_point"
+      end_point_row:
+        resourceId: "com.keenon.solutionindustry:id/item_end_point"
+      shelf_spec_row:
+        resourceId: "com.keenon.solutionindustry:id/item_shelf_size"
+      start_work_btn:
+        text: "开始工作"
+        resourceId: "com.keenon.solutionindustry:id/view_start"
+    point_picker:
+      dialog_check_text: "选择目标点"
+      point_item_resourceId: "com.keenon.solutionindustry:id/tv_point"
+      confirm_text: "确定"
+      confirm_resourceId: "com.keenon.solutionindustry:id/tv_sure"
+    shelf_picker:
+      dialog_title: "选择货架"
+      confirm_text: "确定"
+      confirm_resourceId: "com.keenon.solutionindustry:id/tv_sure"
+      swipe_layout_resourceId: "com.keenon.solutionindustry:id/swipe_layout"
+      title_resourceId: "com.keenon.solutionindustry:id/tv_title"
+      description_resourceId: "com.keenon.solutionindustry:id/tv_description"
+      check_resourceId: "com.keenon.solutionindustry:id/iv_checked"
+    running_page:
+      status_resourceId: "com.keenon.solutionindustry:id/tv_msg"
+      exit_btn_text: "确定"
+      exit_btn_resourceId: "com.keenon.solutionindustry:id/view_commit"
+
+# ============================================================
+# 四、举升压测 (jack_stress.py / jack_stress_enhanced.py)
+# ============================================================
+jack_stress:
+  device:
+    serial: "192.168.0.100:5555"   # ← 改为你的机器人 IP
+    package: "com.keenon.solutionindustry"
+    home_activity: "com.keenon.industry.activity.IndustryHomeActivity"
+
+  ui:
+    home:
+      transport_btn_text: "搬运"
+      menu_rid: "com.keenon.solutionindustry:id/view_menu"
+      battery_rid: "com.keenon.solutionindustry:id/tv_battery"
+    transport_page:
+      jack_button_rid: "com.keenon.solutionindustry:id/tv_jack_button"
+      jack_status_rid: "com.keenon.solutionindustry:id/tv_text"
+      back_rid: "com.keenon.solutionindustry:id/view_left"
+
+  stress:
+    cycles: 5
+    jack_wait_timeout: 15
+    interval_between: 10
+    operation_timeout: 5
+    max_consecutive_fails: 5
+    fail_wait_seconds: 10
+    low_battery_threshold: 10
+    target_battery: 80
+    charge_after_complete: true
+
+  test_count: 3
+  low_battery_threshold: 10
+  target_battery_threshold: 80
+  wait_after_action: 10
+
+# ============================================================
+# 四·二、双机确定按钮同步点击 (dual_click_listener.py)
+# ============================================================
+dual_click:
+  button_resourceId: "com.keenon.solutionindustry:id/tv_start"
+  filter_texts:
+    - "结束调度"
+  poll_interval: 1
+  click_delay: 2
+
+# ============================================================
+# 五、MCP 服务器 (src/mcp_server/)
+# ============================================================
+mcp:
+  server_name: "app-automation-mcp"
+  server_version: "1.0.0"
+  protocol_version: "2024-11-05"
+  log_level: "INFO"
+  log_file: "./logs/mcp_server.log"
+  screenshot_dir: "./screenshots"
+  reports_dir: "./reports"
+  timeout_default: 300
+  timeout_long_running: 7200
+  driver_pool_size: 5
+  driver_pool_ttl: 3600
+  allowed_packages:
+    - "com.keenon.solutionindustry"
+  security:
+    require_device_verification: false
+    allowed_device_ips: []
+    block_external_devices: false

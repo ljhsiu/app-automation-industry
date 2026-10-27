@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "app-automation": {
+      "command": "python",
+      "args": ["-m", "src.mcp_server.server"],
+      "cwd": "/absolute/path/to/app-automation-mcp",
+      "env": {
+        "PYTHONPATH": "/absolute/path/to/app-automation-mcp/src"
+      }
+    }
+  }
+}

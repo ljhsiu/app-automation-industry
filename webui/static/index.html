@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AMR 压测控制台</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<header>
+  <h1>AMR 压测控制台</h1>
+  <div class="header-right">
+    <span class="dot" id="svc-dot"></span>
+    <span id="svc-text">未连接</span>
+    <button id="btn-refresh-devices" class="ghost">刷新设备</button>
+  </div>
+</header>
+
+<main>
+  <!-- ================= 左侧边栏 ================= -->
+  <aside id="sidebar">
+    <section>
+      <h2>任务预设</h2>
+      <div id="preset-list"></div>
+      <p class="task-desc" id="task-desc"></p>
+    </section>
+
+    <section>
+      <h2>参数</h2>
+      <div id="param-form"></div>
+      <label class="chk-line" id="mock-row" hidden>
+        <input type="checkbox" id="mock-mode"> 演示模式（无真机模拟）
+      </label>
+    </section>
+
+    <section id="device-section">
+      <h2>设备选择</h2>
+      <div id="device-pick"><p class="muted">加载中…</p></div>
+    </section>
+
+    <div class="actions">
+      <button id="btn-start" class="primary">▶ 启动</button>
+      <button id="btn-stop" disabled>■ 停止</button>
+    </div>
+
+    <section>
+      <h2>运行历史</h2>
+      <div id="run-history"><p class="muted">暂无记录</p></div>
+    </section>
+  </aside>
+
+  <!-- ================= 右侧主面板 ================= -->
+  <section id="main-panel">
+    <div class="cards" id="metric-cards">
+      <div class="card"><div class="card-label">运行时长</div><div class="card-value" id="m-duration">-</div></div>
+      <div class="card"><div class="card-label">在线设备</div><div class="card-value" id="m-devices">-</div></div>
+      <div class="card"><div class="card-label">同步批次</div><div class="card-value" id="m-batches">-</div></div>
+      <div class="card"><div class="card-label">点击成功率</div><div class="card-value" id="m-rate">-</div></div>
+      <div class="card"><div class="card-label">平均同步等待</div><div class="card-value" id="m-wait">-</div></div>
+      <div class="card"><div class="card-label">连续失败</div><div class="card-value" id="m-fails">-</div></div>
+    </div>
+
+    <div class="panel-box">
+      <h3>设备状态</h3>
+      <table id="device-board">
+        <thead><tr><th>设备</th><th>地址</th><th>在线</th><th>就绪</th><th>按钮文本</th></tr></thead>
+        <tbody><tr><td colspan="5" class="muted">等待任务启动…</td></tr></tbody>
+      </table>
+    </div>
+
+    <div class="panel-box">
+      <h3>同步等待耗时 (ms)</h3>
+      <canvas id="wait-chart" width="880" height="140"></canvas>
+    </div>
+
+    <div class="panel-box" id="log-pane">
+      <div class="log-toolbar">
+        <span id="log-title">实时日志</span>
+        <select id="log-level">
+          <option value="">全部级别</option>
+          <option value="info">info</option>
+          <option value="warn">warn</option>
+          <option value="error">error</option>
+        </select>
+        <input id="log-filter" placeholder="关键词过滤">
+        <label class="chk-inline"><input type="checkbox" id="log-autoscroll" checked> 自动滚动</label>
+        <button class="ghost" id="btn-clear-log">清空</button>
+        <button class="ghost" id="btn-download-log" disabled>下载</button>
+      </div>
+      <div id="log-body"></div>
+    </div>
+  </section>
+</main>
+
+<div id="toast"></div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+# Core dependencies
+uiautomator2>=2.12.0
+pyyaml>=6.0
+
+# Web UI dependencies (start_webui.bat 缺失时会自动安装)
+fastapi>=0.110.0
+uvicorn[standard]>=0.27.0
+
+# Development dependencies
+pytest>=7.0.0
+pytest-asyncio>=0.21.0
+black>=23.0.0
+ruff>=0.1.0
+mypy>=1.0.0
